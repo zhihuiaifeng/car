@@ -1,0 +1,25 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.LogoInfoMapper">
+	<resultMap type="com.bool.carshare.entity.LogoInfo" id="LogoInfoMap">
+		<result column="platform_name" property="platformName"/>
+		<result column="user_id" property="user.ID"/>
+		<result column="user_name" property="user.name"/>
+		<result column="upload_datetime" property="uploadDate"/>
+	</resultMap>
+	
+	<insert id="saveLogoInfo" useGeneratedKeys="true" keyProperty="ID">
+		insert into logoinfo(platform_name,picture,user_id,user_name,upload_datetime)
+		values(#{platformName},#{picture},#{user.ID},#{user.name},#{uploadDate})
+	</insert>
+	
+	<select id="getLogoInfo" resultMap="LogoInfoMap">
+		select * from logoinfo
+		where user_id = #{userID}
+		order by upload_datetime desc
+		limit 0, 1
+	</select>
+	
+	<delete id="deleteLogoInfo">
+		delete from logoinfo where user_id = #{userID}
+	</delete>
+</mapper>

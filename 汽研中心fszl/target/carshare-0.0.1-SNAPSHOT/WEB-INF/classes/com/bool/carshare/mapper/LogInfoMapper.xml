@@ -1,0 +1,48 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.LogInfoMapper">
+	<resultMap type="com.bool.carshare.entity.LogInfo" id="LogInfoMap">
+		<result column="operatorID" property="operator.ID"/>
+		<result column="operatorName" property="operator.name"/>
+	</resultMap>
+	
+	<insert id="saveLogInfo">
+		insert into loginfo(operatorID,operatorName,operateDateTime,moduleName,operation)
+		values(#{operator.ID},#{operator.name},#{operateDateTime},#{moduleName},#{operation});
+	</insert>
+	
+	<select id="getLogListOnSpecificPage" resultMap="LogInfoMap">
+		select * from loginfo
+		
+		<where>
+			<if test="condition != null">
+				<if test="condition.operator != null">
+					<if test="condition.operator.name!=null and condition.operator.name!=''">
+						operatorName like concat('%', #{condition.operator.name}, '%')
+					</if>
+				</if>
+				
+				<if test="condition.moduleName!=null and condition.moduleName!=''">
+					and moduleName like concat('%', #{condition.moduleName}, '%')
+				</if>
+			</if>
+		</where>
+		
+		limit #{start}, #{row}
+	</select>
+	
+	<select id="getLogListTotalCount" resultType="java.lang.Integer">
+		select count(*) from loginfo
+		
+		<where>
+			<if test="operator != null">
+				<if test="operator.name!=null and operator.name!=''">
+					operatorName like concat('%', #{operator.name}, '%')
+				</if>
+			</if>
+			
+			<if test="moduleName!=null and moduleName!=''">
+				and moduleName like concat('%', #{moduleName}, '%')
+			</if>
+		</where>
+	</select>
+</mapper>

@@ -1,0 +1,120 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.DiscountInfoMapper">
+	
+	<select id="findDisById" resultType="com.bool.carshare.entity.DiscountInfo">
+		SELECT * FROM discountinfo di 
+		LEFT JOIN user_discount ud ON ud.disid = di.disid 
+		LEFT JOIN userinfo ui ON ud.uid = ui.uid
+		<where>
+			(di.status = '2' OR di.status = '3')
+			AND ud.udstate = 0 
+			<if test="uid != null">
+				AND ui.uid = #{uid}
+			</if>
+		</where>
+	</select>
+	
+	<select id="findUserDiscount" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM user_discount 
+		<where>
+			udstate = 0
+			<if test="uid != null">
+				AND uid = #{uid}
+			</if>
+			
+		</where>
+	</select>
+	
+	<select id="findDiscountInfo" resultType="com.bool.carshare.entity.DiscountInfo">
+		SELECT * FROM (SELECT * FROM discountinfo di
+		LEFT JOIN userinfo ui ON ui.level <![CDATA[>=]]> di.member 
+		WHERE (di.status = '2' OR di.status = '3')
+		AND ui.uid = #{uid}) a
+		WHERE NOT EXISTS (SELECT * FROM user_discount ud WHERE a.disid = ud.disid AND ud.uid = #{uid})
+	</select>
+	
+	<select id="findWebDiscountInfo" resultType="com.bool.carshare.entity.DiscountInfo">
+		SELECT * FROM discountinfo 
+		<where>
+			<if test="condition.name != null and condition.name != ''">
+				name = #{condition.name}
+			</if>
+			<if test="condition.member != null and condition.member != ''">
+				AND member = #{condition.member} 
+			</if>
+		</where>
+		limit #{start},#{row} 
+	</select>
+	
+	<select id="findWebDiscountInfoNum"  resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM discountinfo 
+		<where>
+			<if test="name != null and name != ''">
+				name = #{name}
+			</if>
+			<if test="member != null and member != ''">
+				AND member = #{member} 
+			</if>
+		</where>
+	</select>
+	
+	<select id="getDiscountById" resultType="com.bool.carshare.entity.DiscountInfo">
+		SELECT * FROM discountinfo WHERE disid = #{disid}
+	</select>
+	
+	<insert id="saveUserDis">
+		INSERT INTO user_discount(uid,disid,udstate)
+		VALUES(#{uid},#{disid},#{udstate})
+	</insert>
+	
+	<insert id="saveDiscountInfo">
+		INSERT INTO discountinfo(name,money,member,status,issueTime,startTime,endTime)
+		VALUES(#{name},#{money},#{member},#{status},#{issueTime},#{startTime},#{endTime})
+	</insert>
+	
+	<delete id="delUserDis">
+		DELETE FROM user_discount WHERE uid = #{uid} AND disid = #{disid}
+	</delete>
+	
+	<delete id="delDiscountInfo">
+		DELETE FROM discountinfo WHERE disid in
+		<foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<update id="upDiscountInfo">
+		UPDATE discountinfo 
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="money != null">
+				money = #{money},
+			</if>
+			<if test="member != null">
+				member = #{member},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="issueTime != null">
+				issueTime = #{issueTime},
+			</if>
+			<if test="startTime != null">
+				startTime = #{startTime},
+			</if>
+			<if test="endTime != null">
+				endTime = #{endTime}
+			</if>
+		</set>
+		WHERE disid = #{disid}
+	</update>
+	
+	<update id="upUserDiscount">
+		UPDATE user_discount SET udstate = #{udstate} WHERE uid = #{uid} AND disid = #{disid}
+	</update>
+
+</mapper>

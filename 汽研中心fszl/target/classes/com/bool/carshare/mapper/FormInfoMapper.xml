@@ -1,0 +1,97 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.FormInfoMapper">
+	<resultMap type="com.bool.carshare.entity.FormInfo" id="formInfoMap">
+		<result column="plate_number" property="plateNumber"/>
+		<result column="charger_id" property="charger.ID"/>
+		<result column="charger_name" property="charger.name"/>
+		<result column="recorder_id" property="recorder.ID"/>
+		<result column="recorder_name" property="recorder.name"/>
+		<result column="record_date_time" property="recordDate"/>
+	</resultMap>
+	
+	<insert id="saveFormInfo">
+		insert into forminfo(code, plate_number, charger_id, charger_name, note, type, location1, location2, description, status, recorder_id, recorder_name, record_date_time, ver, del, code_flow)
+		select concat(date_format(now(),'%Y%m%d'),lpad((case when max(f.code_flow) is null then 0 when max(f.code_flow) = '' then 0 else max(f.code_flow) end)+1,4,'0')) as code,
+		#{plateNumber}, #{charger.ID}, #{charger.name}, #{note}, #{type}, #{location1}, #{location2}, #{description}, 0, #{recorder.ID}, #{recorder.name}, now(), 1, 'n',
+		((case when max(f.code_flow) is null then 0 when max(f.code_flow) = '' then 0 else max(f.code_flow) end)+1) as code_flow
+		from FormInfo f
+		where date_format(f.record_date_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')
+	</insert>
+	
+	<select id="getFormListOnSpecificPage" resultMap="formInfoMap">
+		select * from forminfo
+		where del = 'n'
+		
+		<if test="condition != null">
+			<if test="condition.plateNumber!=null and condition.plateNumber!=''">
+				and plate_number like concat('%', #{condition.plateNumber}, '%')
+			</if>
+			
+			<if test="condition.charger != null">
+				<if test="condition.charger.name!=null and condition.charger.name!=''">
+					and charger_name like concat('%', #{condition.charger.name}, '%')
+				</if>
+			</if>
+			
+			<if test="condition.status != -1">
+				and	status = #{condition.status}
+			</if>
+			
+			<if test="condition.type!=null and condition.type!=''">
+				and type = #{condition.type}
+			</if>
+			
+			<if test="condition.sortName!=null and condition.sortName!='' and condition.sortOrder!=null and condition.sortOrder!=''">
+				order by ${condition.sortName} ${condition.sortOrder}
+			</if>
+		</if>
+		
+		limit #{start}, #{row}
+	</select>
+	
+	<select id="getFormListTotalCount" resultType="java.lang.Integer">
+		select count(*) from forminfo
+		where del = 'n'
+		
+		<if test="plateNumber!=null and plateNumber!=''">
+			and plate_number like concat('%', #{plateNumber}, '%')
+		</if>
+		<if test="charger != null">
+			<if test="charger.name!=null and charger.name!=''">
+				and charger_name like concat('%', #{charger.name}, '%')
+			</if>
+		</if>
+	</select>
+	
+	<update id="updateFormInfo">
+		update forminfo
+		
+		<set>
+			<if test="code != null">code = #{code},</if>
+			<if test="plateNumber != null">plate_number = #{plateNumber},</if>
+			<if test="charger != null">
+				<if test="charger.ID != null">charger_id = #{charger.ID},</if>
+				<if test="charger.name != null">charger_name = #{charger.name},</if>
+			</if>
+			<if test="note != null">note = #{note},</if>
+			<if test="type != null">type = #{type},</if>
+			<if test="location1 != null">location1 = #{location1},</if>
+			<if test="location2 != null">location2 = #{location2},</if>
+			<if test="description != null">description = #{description},</if>
+			<if test="status != null">status = #{status},</if>
+			<if test="ver != null">ver = #{ver} + 1</if>
+		</set>
+		
+		where id = #{ID}
+		and ver = #{ver}
+	</update>
+	
+	<update id="deleteFormInfo">
+		update forminfo
+		set del = 'y'
+		where id in
+		<foreach collection="formIDList" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+</mapper>

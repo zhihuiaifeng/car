@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+       Copyright 2015-2016 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.UserInfoMapper">
+    <insert id="saveUser">
+    	INSERT INTO userinfo(uname,upwd,age,idcard,sex,driverNo,idcard_photo_a,idcard_photo_b,
+    	driver_photo_a,driver_photo_b,create_date,ustate,balance,iCode,photo,dataState) 
+    	VALUES(#{uname},#{upwd},#{age},#{idcard},#{sex},#{driverNo},#{idcard_photo_a},#{idcard_photo_b},
+    	#{driver_photo_a},#{driver_photo_b},NOW(),1,300.00,#{iCode},'','0');
+    </insert>  
+   	<select id="login" resultType="com.bool.carshare.entity.UserInfo">
+   		SELECT * FROM userinfo usr WHERE usr.uname= #{username} AND usr.upwd = #{password}
+   	</select>
+   	<select id="getUser" resultType="com.bool.carshare.entity.UserInfo">
+   		SELECT * FROM userinfo usr
+   		<where> 
+   			<if test="condition.realName != null and condition.realName != '' ">
+   				usr.realName LIKE CONCAT('%',#{condition.realName},'%') 
+   			</if>
+	   		<if test="condition.uname != null and condition.uname != '' ">
+	   			AND usr.uname LIKE CONCAT('%',#{condition.uname},'%') 
+	   		</if>
+	   		<if test="condition.sex != null and condition.sex != '' ">
+	   			AND usr.sex = #{condition.sex}
+	   		</if>
+	   		<if test="condition.driverNo != null and condition.driverNo != '' ">
+	   			AND usr.driverNo = #{condition.driverNo}
+	   		</if>
+	   		<if test="condition.ustate != null and condition.ustate != '' ">
+	   			AND usr.ustate = #{condition.ustate}
+	   		</if>
+	   		<if test="condition.level != null and condition.level != '' ">
+	   			AND usr.level = #{condition.level}
+	   		</if>
+   		</where>
+   		limit #{start},#{row}
+   	</select>
+   	<select id="getUserCount" resultType="java.lang.Integer">
+   		SELECT COUNT(*) FROM userinfo usr
+   		<where> 
+   			<if test="realName != null  and realName != ''">
+   				usr.realName LIKE CONCAT('%',#{realName},'%') 
+   			</if>
+	   		<if test="uname != null  and uname != ''">
+	   			AND usr.uname LIKE CONCAT('%',#{uname},'%') 
+	   		</if>
+	   		<if test="sex != null  and sex != ''">
+	   			AND usr.sex = #{sex}
+	   		</if>
+	   		<if test="driverNo != null  and driverNo != ''">
+	   			AND usr.driverNo = #{driverNo}
+	   		</if>
+	   		<if test="ustate != null  and ustate != ''">
+	   			AND usr.ustate = #{ustate}
+	   		</if>
+	   		<if test="level != null  and level != ''">
+	   			AND usr.level = #{level}
+	   		</if>
+   		</where>
+   	</select>
+   	<select id="getUserInfoById" resultType="com.bool.carshare.entity.UserInfo">
+   		SELECT * FROM userinfo usr WHERE usr.uid = #{userId}
+   	</select>
+   	
+   	<update id="updateUserInfo">
+   		UPDATE userinfo usr 
+   		<set>
+	   		<if test="level != null">
+	   			usr.level = #{level},
+	   		</if>
+	   		<if test="totalCredit != null">
+	   			usr.totalCredit = #{totalCredit},
+	   		</if>
+	   		<if test="totalExpense != null">
+	   			usr.totalExpense = #{totalExpense},
+	   		</if>
+	   		<if test="totalCharge != null">
+	   			usr.totalCharge = #{totalCharge},
+	   		</if>
+   			<if test="idcard != null">
+   				usr.idcard = #{idcard},
+   			</if>
+   			<if test="sex != null">
+   				usr.sex = #{sex},
+   			</if>
+   			<if test="age > 0 ">
+   				usr.age = #{age},
+   			</if>
+   			<if test="upwd != null">
+   				usr.upwd = #{upwd},
+   			</if>
+   			<if test="realName != null">
+   				usr.realName = #{realName},
+   			</if>
+   			<if test="photo != null and photo != ''">
+   				usr.photo = #{photo},
+   			</if>
+   			<if test="idcard_photo_a != null">
+   				usr.idcard_photo_a = #{idcard_photo_a},
+   			</if>
+   			<if test="idcard_photo_b != null">
+   				usr.idcard_photo_b = #{idcard_photo_b},
+   			</if> 
+   			<if test="driver_photo_a != null">
+   				usr.driver_photo_a = #{driver_photo_a},
+   			</if>
+   			<if test="driver_photo_b != null">
+   				usr.driver_photo_b = #{driver_photo_b},
+   			</if>
+   			<if test="ustate > 0">
+   				usr.ustate = #{ustate},
+   			</if>
+   			<if test ="driverNo != null">
+   				usr.driverNo = #{driverNo},
+   			</if>
+   			<if test ="dataState != null">
+   				usr.dataState = #{dataState}
+   			</if>
+   		</set>
+   		WHERE usr.uid = #{uid}
+   	</update>
+   	
+   	
+   	<update id="uploadIdcardPhoto_a">
+   		UPDATE userinfo usr SET usr.idcard_photo_a = #{idcard_photo_a} WHERE usr.uid = #{uid}
+   	</update>
+   	
+   	<update id="uploadIdcardPhoto_b">
+   		UPDATE userinfo usr SET usr.idcard_photo_b = #{idcard_photo_b} WHERE usr.uid = #{uid}
+   	</update>
+   	
+   	<update id="uploadDriverPhoto_a">
+   		UPDATE userinfo usr SET usr.driver_photo_a = #{driver_photo_a} WHERE usr.uid = #{uid}
+   	</update>
+   	
+    <update id="uploadDriverPhoto_b">
+    	UPDATE userinfo usr SET usr.driver_photo_b = #{driver_photo_b} WHERE usr.uid = #{uid}
+    </update>
+   	
+   	<update id="updateBalances">
+   		UPDATE userinfo ui 
+   		<set>
+   			<if test="balance != null">
+   				ui.balance = #{balance},
+   			</if>
+   			<if test="cashPledge != null">
+   				ui.cashPledge = #{cashPledge},
+   			</if>
+   			<if test="recharges != null">
+   				ui.recharges = #{recharges},
+   			</if>
+   			<if test="expenses != null">
+   				ui.expenses = #{expenses},
+   			</if>
+   			<if test="favorables != null">
+   				ui.favorables = #{favorables},
+   			</if> 
+   			<if test="lastConsumption != null">
+   				ui.lastConsumption = #{lastConsumption},
+   			</if>
+   			<if test="level != null">
+   				ui.level = #{level},
+   			</if>
+   			<if test="totalCredit != null">
+   				ui.totalCredit = #{totalCredit},
+			</if>
+			<if test="totalExpense != null">
+				ui.totalExpense = #{totalExpense},
+			</if>
+			<if test="totalCharge != null">
+				ui.totalCharge = #{totalCharge}
+			</if>
+   		</set>
+   			WHERE ui.uid = #{uid}
+   	</update>
+   	
+   	<update id="upLoginState">
+   		UPDATE userinfo SET loginState = #{loginState} WHERE uname = #{uname};
+   	</update>
+   	
+   	
+   	
+</mapper>

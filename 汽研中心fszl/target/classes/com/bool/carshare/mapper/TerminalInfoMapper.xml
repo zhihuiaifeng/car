@@ -1,0 +1,76 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.TerminalInfoMapper">
+	<resultMap type="com.bool.carshare.entity.TerminalInfo" id="terminalInfoMap">
+		<result column="sim_card_number" property="simCardNumber"/>
+		<result column="plate_number" property="plateNumber"/>
+		<result column="software_version" property="softwareVersion"/>
+		<result column="hardware_version" property="hardwareVersion"/>
+		<result column="recorder_id" property="recorder.ID"/>
+		<result column="recorder_name" property="recorder.name"/>
+		<result column="record_date_time" property="recordDate"/>
+	</resultMap>
+	
+	<insert id="saveTerminalInfo">
+		insert into terminalinfo(code, sim_card_number, plate_number, software_version, hardware_version, recorder_id, recorder_name, record_date_time, ver, del)
+		values(#{code}, #{simCardNumber}, #{plateNumber}, #{softwareVersion}, #{hardwareVersion}, #{recorder.ID}, #{recorder.name}, now(), 1, 'n')
+	</insert>
+	
+	<select id="getTerminalListOnSpecificPage" resultMap="terminalInfoMap">
+		select * from terminalinfo
+		where del = 'n'
+		
+		<if test="condition != null">
+			<if test="condition.plateNumber!=null and condition.plateNumber!=''">
+				and plate_number like concat('%', #{condition.plateNumber}, '%')
+			</if>
+			
+			<if test="condition.simCardNumber!=null and condition.simCardNumber!=''">
+				and sim_card_number like concat('%', #{condition.simCardNumber}, '%')
+			</if>
+		</if>
+		
+		limit #{start}, #{row}
+	</select>
+	
+	<select id="getTerminalListTotalCount" resultType="java.lang.Integer">
+		select count(*) from terminalinfo
+		where del = 'n'
+		
+		<if test="plateNumber!=null and plateNumber!=''">
+			and plate_number like concat('%', #{plateNumber}, '%')
+		</if>
+		<if test="simCardNumber!=null and simCardNumber!=''">
+			and sim_card_number like concat('%', #{simCardNumber}, '%')
+		</if>
+	</select>
+	
+	<update id="updateTerminalInfo">
+		update terminalinfo
+		
+		<set>
+			<if test="code != null">code = #{code},</if>
+			<if test="simCardNumber != null">sim_card_number = #{simCardNumber},</if>
+			<if test="plateNumber != null">plate_number = #{plateNumber},</if>
+			<if test="softwareVersion != null">software_version = #{softwareVersion},</if>
+			<if test="hardwareVersion != null">hardware_version = #{hardwareVersion},</if>
+			<if test="ver != null">ver = #{ver} + 1</if>
+		</set>
+		
+		where id = #{ID}
+		and ver = #{ver}
+	</update>
+	
+	<update id="deleteTerminalInfo">
+		update terminalinfo
+		set del = 'y'
+		where id in
+		<foreach collection="terminalIDList" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<select id="getTerminalInfo" resultMap="terminalInfoMap">
+		select * from terminalinfo
+		where id = #{terminalID}
+	</select>
+</mapper>

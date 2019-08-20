@@ -1,0 +1,87 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.DotInfoMapper">
+	<insert id="saveDotInfo">
+		INSERT INTO dotinfo(gps_x,gps_y,dot_name,dot_address,parking_lot,charge_number,operate_time,cars,park_avaliable,dot_city,photo)
+			VALUES(#{gps_x},#{gps_y},#{dot_name},#{dot_address},#{parking_lot},
+			#{charge_number},NOW(),#{cars},#{park_avaliable},#{dot_city},#{photo})
+	</insert>
+	<select id="getDotInfos" resultType="com.bool.carshare.entity.DotInfo">
+		SELECT * FROM dotinfo 
+		<where>
+			<if test="condition.dot_name != null">
+				dot_name LIKE CONCAT('%', #{condition.dot_name},'%')
+			</if>
+			<if test="condition.cars != null">
+				AND cars = #{condition.cars}
+			</if>
+		</where>
+		limit #{start},#{row}
+	</select>
+	
+	<update id="updateDotInfo">
+		UPDATE dotinfo df
+		<set>
+			<if test="gps_x != null">
+				df.gps_x = #{gps_x},
+			</if>
+			<if test="gps_y != null">
+				df.gps_y = #{gps_y},
+			</if>
+			<if test="dot_name != null">
+				df.dot_name = #{dot_name},
+			</if>
+			
+			<if test="dot_address != null">
+				df.dot_address = #{dot_address},
+			</if>
+			
+			<if test="parking_lot != null and parking_lot > 0">
+				df.parking_lot = #{parking_lot},
+			</if>
+			
+			<if test="charge_number != null and charge_number > 0">
+				df.charge_number = #{charge_number},
+			</if>
+			<if test="cars != null">
+				df.cars = #{cars},
+			</if>
+			<if test="park_avaliable != null">
+				df.park_avaliable = #{park_avaliable},
+			</if>
+			<if test="dot_city != null">
+				df.dot_city = #{dot_city},
+			</if>
+			<if test="dot_city != null">
+				df.photo = #{photo}
+			</if>
+		</set>
+		WHERE df.dot_id = #{dot_id}
+		
+	
+	</update>
+	<select id="getDotInfosNum" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM dotinfo di
+		<where>
+			<if test="dot_name != null">
+				di.dot_name LIKE CONCAT('%', #{dot_name},'%')
+			</if>
+			<if test="cars != null">
+				AND di.cars = #{cars}
+			</if>
+		</where>
+	</select>
+	<select id="getDotInfosAll" resultType="com.bool.carshare.entity.DotInfo">
+		SELECT * FROM dotinfo 
+	</select>
+	<select id="getDotInfoById" resultType="com.bool.carshare.entity.DotInfo">
+		SELECT * FROM dotinfo WHERE dot_id = #{dot_id}
+	</select>
+	
+	
+	<delete id="deleteDotInfo">
+		DELETE FROM dotinfo WHERE dot_id = #{dot_id}
+		
+	</delete>
+</mapper>

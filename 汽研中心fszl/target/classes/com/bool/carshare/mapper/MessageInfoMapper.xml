@@ -1,0 +1,18 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.MessageInfoMapper">
+	
+	<select id="findloAndla" resultType="com.bool.carshare.entity.MessageInfo">
+		SELECT msg.* FROM messageinfo msg 
+		LEFT JOIN CarInfo car ON car.cterminal = msg.cterminal 
+		<where>
+			<if test="clicense != null">
+				car.clicense = #{clicense}
+			</if>
+			<if test="startTime != null and endTime != null">
+				AND msg.modifyTime between #{startTime} and #{endTime}
+			</if>
+		</where>
+	</select>
+</mapper>

@@ -1,0 +1,290 @@
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.OrderInfoMapper">
+	<resultMap type="com.bool.carshare.entity.OrderInfo" id="OrderInfo">
+		<id property="orderNumber" column="Order_Number"/>
+		<result property="orderState" column="Order_State"/> 
+		<result property="startTime" column="StartTime"/>
+		<result property="startSite" column="StartSite"/>
+		<result property="endTime" column="EndTime"/>
+		<result property="endSite" column="EndSite"/>
+		<result property="runLength" column="Run_Length"/>
+		<result property="runTime" column="RunTime"/>
+		<result property="expenses" column="Expenses"/>
+		<result property="uid" column="Uid"/>
+		<result property="terminalId" column="Terminal_id"/>
+		<result property="carId" column="CarId"/>
+		<result property="errorMeg" column="ErrorMeg"/>
+		<result property="errorState" column="ErrorState"/>
+		<result property="remarks" column="Remarks"/>
+		<result property="reply" column="Reply"/>
+		<result property="submitTime" column="submitTime"/>
+		<result property="finishTime" column="finishTime"/>
+	</resultMap>
+	
+
+	<insert id="confirmOrder">
+		INSERT INTO orderinfo(Order_Number,Order_State,startTime,startSite,endTime,endSite,
+			Run_Length,runTime,expenses,uid,Terminal_id,CarId,ErrorMeg,ErrorState,Remarks,Reply,submitTime)
+		VALUES(#{orderNumber},#{orderState},#{startTime},#{startSite},#{endTime},#{endSite},#{runLength},
+		#{runTime},#{expenses},#{uid},#{terminalId},#{carId},#{errorMeg},#{errorState},#{remarks},#{reply},#{submitTime});
+			
+	</insert>
+	<!-- 单独调用异常订单 -->
+	<select id="getErrorOrder" resultType="com.bool.carshare.entity.OUCInfo">
+	SELECT * FROM orderinfo oi 
+		LEFT JOIN userinfo ui ON oi.uid = ui.uid 
+		LEFT JOIN carinfo ci ON ci.cid = oi.CarId 
+		<where>
+			oi.Order_State = '5'
+			<if test="condition.cmodel != null and condition.cmodel != ''">
+				AND ci.cmodel LIKE CONCAT('%', #{condition.cmodel},'%')
+			</if>
+			<if test="condition.order_Number != null and condition.order_Number != ''">
+				AND oi.Order_Number LIKE CONCAT('%', #{condition.order_Number},'%')
+			</if>
+			<if test="condition.realName != null and condition.realName != ''">
+				AND ui.realName LIKE CONCAT('%', #{condition.realName},'%')
+			</if>
+			<if test="condition.clicense != null and condition.clicense != ''">
+				AND ci.clicense LIKE CONCAT('%', #{condition.clicense},'%')
+			</if>
+			<if test="condition.zoneTime != null and condition.zoneTime != ''">
+				AND oi.StartTime <![CDATA[<=]]> #{condition.zoneTime}
+				AND oi.EndTime <![CDATA[>=]]>  #{condition.zoneTime}
+			</if>
+			<if test="condition.uname != null and condition.uname != ''">
+				AND ui.uname LIKE CONCAT('%', #{condition.uname},'%')
+			</if>
+		</where>
+		limit #{start},#{row}
+	</select>
+	
+	<select id="getErrorOrderCount"  resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM orderinfo oi 
+		LEFT JOIN userinfo ui ON oi.uid = ui.uid 
+		LEFT JOIN carinfo ci ON ci.cid = oi.CarId 
+		<where>
+			oi.Order_State = '5'
+			<if test="cmodel != null and cmodel !=''">
+				AND ci.cmodel = #{cmodel}
+			</if>
+			<if test="order_Number != null and order_Number !=''">
+				AND oi.Order_Number LIKE CONCAT('%', #{order_Number},'%')
+			</if>
+			<if test="realName != null and realName !=''">
+				AND ui.realName LIKE CONCAT('%', #{realName},'%')
+			</if>
+			<if test="clicense != null and clicense !=''">
+				AND ci.clicense LIKE CONCAT('%',  #{clicense},'%')
+			</if>
+			<if test="zoneTime != null and zoneTime != ''">
+				AND oi.StartTime <![CDATA[<=]]> #{zoneTime}
+				AND oi.EndTime <![CDATA[>=]]>  #{zoneTime}
+			</if>
+			<if test="uname != null and uname!= ''">
+				AND ui.uname = #{uname}
+			</if>
+		</where>
+	</select>
+
+
+	
+	
+	<select id="getOrderDataByUserID" resultType="com.bool.carshare.entity.OUCInfo">
+		SELECT * FROM orderinfo oi
+		LEFT JOIN userinfo u ON oi.uid = u.uid
+		<where>
+			<if test = "condition.uid != null">
+				oi.uid = #{condition.uid}			
+			</if>
+			<if test="condition.carId != null">
+				AND oi.carId = #{condition.carId}
+			</if>
+			<if test="condition.orderState != null">
+				AND oi.Order_State = #{condition.orderState}
+			</if>
+			<if test = "condition.terminalId != null">
+				AND oi.Terminal_id = #{condition.terminalId}
+			</if>
+		</where>
+		ORDER BY oi.Order_Number DESC 
+		limit #{start},#{row} 
+	</select>
+	
+	
+	
+	<select id="getOrderDataByOrderNum" resultMap="OrderInfo">
+		SELECT Order_Number,Order_State,StartTime,StartSite,EndTime,
+			EndSite,Run_Length,RunTime,Expenses,Uid,Terminal_id,CarId
+		FROM orderinfo oi
+		WHERE oi.Order_Number = #{orderNumber}
+	</select>
+	
+	
+	
+	<select id="getOrderDataAndStampByOrderNum" resultMap="OrderInfo" >
+		SELECT *
+		FROM orderinfo oi
+		WHERE oi.Uid = #{uid}
+		AND	(oi.Order_State = '0' OR oi.Order_State = '1' OR oi.Order_State = '4')
+			
+	</select>
+	
+	<select id="getOrderDataCountByOrderNum"  resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM orderinfo oi
+		WHERE oi.Uid = #{uid}
+		AND	(oi.Order_State = '0' OR oi.Order_State = '1' OR oi.Order_State = '4')
+			
+	</select>
+	
+	<select id="getOrderDataCount" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM orderinfo oi
+		<where>
+			<if test = "uid != null">
+				oi.uid = #{uid}			
+			</if>
+			<if test="carId != null">
+				AND oi.CarId = #{carId}
+			</if>
+			<if test="orderState != null">
+				AND oi.Order_State = #{orderState}
+			</if>
+			<if test = "terminalId != null">
+				AND oi.Terminal_id = #{terminalId}
+			</if>
+		</where>
+	</select>
+	
+	
+	
+	
+	<update id="modifyOrder">
+		UPDATE orderinfo 
+		<set>
+			<if test="orderInfo.orderState != null">
+			 	Order_State = #{orderInfo.orderState},
+			</if>
+			
+			<if test=" orderInfo.startTime != null">
+				StartTime = #{orderInfo.startTime},
+			</if>
+			
+			<if test=" orderInfo.endTime != null">
+				EndTime = #{orderInfo.endTime},
+			</if>
+			
+			<if test=" orderInfo.startSite != null">
+				startSite = #{orderInfo.startSite},
+			</if>
+		
+			<if test=" orderInfo.endSite != null">
+				endSite = #{orderInfo.endSite},
+			</if>
+		
+			<if test=" orderInfo.runLength != null">
+				Run_Length = #{orderInfo.runLength},
+			</if>
+		
+			<if test=" orderInfo.runTime != null">
+				runTime = #{orderInfo.runTime},
+			</if>
+		
+			<if test=" orderInfo.expenses != null">
+				expenses = #{orderInfo.expenses},
+			</if>
+		
+			<if test=" orderInfo.terminalId != null">
+				Terminal_id = #{orderInfo.terminalId},
+			</if>
+			
+			<if test="orderInfo.errorMeg != null">
+				ErrorMeg = #{orderInfo.errorMeg},
+			</if>
+			
+			<if test="orderInfo.errorState != null">
+				ErrorState = #{orderInfo.errorState},
+			</if>
+			
+			<if test="orderInfo.remarks != null">
+				Remarks = #{orderInfo.remarks},
+			</if>
+			<if test="orderInfo.reply != null">
+				Reply = #{orderInfo.reply}
+			</if>
+			<if test="orderInfo.submitTime != null">
+				submitTime = #{orderInfo.submitTime}
+			</if>
+			<if test="orderInfo.finishTime != null">
+				finishTime = #{orderInfo.finishTime}
+			</if>
+		</set>
+		<where>
+			<if test="orderInfo.orderNumber != null">
+				Order_Number = #{orderInfo.orderNumber}
+			</if>
+		</where>
+	</update>
+	
+	
+	
+	
+	
+	<select id="getAllOrderInfo"  resultType="com.bool.carshare.entity.OUCInfo">
+		SELECT * FROM orderinfo oi 
+		LEFT JOIN userinfo ui ON oi.uid = ui.uid 
+		LEFT JOIN carinfo ci ON ci.cid = oi.CarId 
+		<where>
+			<if test="condition.cmodel != null and condition.cmodel != ''">
+				ci.cmodel LIKE CONCAT('%', #{condition.cmodel},'%')
+			</if>
+			<if test="condition.order_Number != null and condition.order_Number != ''">
+				AND oi.Order_Number LIKE CONCAT('%', #{condition.order_Number},'%')
+			</if>
+			<if test="condition.realName != null and condition.realName != ''">
+				AND ui.realName LIKE CONCAT('%', #{condition.realName},'%')
+			</if>
+			<if test="condition.clicense != null and condition.clicense != ''">
+				AND ci.clicense LIKE CONCAT('%', #{condition.clicense},'%')
+			</if>
+			<if test="condition.zoneTime != null and condition.zoneTime != ''">
+				AND oi.StartTime <![CDATA[<=]]> #{condition.zoneTime}
+				AND oi.EndTime <![CDATA[>=]]>  #{condition.zoneTime}
+			</if>
+			<if test="condition.uname != null and condition.uname != ''">
+				AND ui.uname LIKE CONCAT('%', #{condition.uname},'%')
+			</if>
+		</where>
+		limit #{start},#{row}
+	</select>
+	
+	<select id="getAllOrderInfoNum"  resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM orderinfo oi 
+		LEFT JOIN userinfo ui ON oi.uid = ui.uid 
+		LEFT JOIN carinfo ci ON ci.cid = oi.CarId 
+		<where>
+			<if test="cmodel != null and cmodel !=''">
+				ci.cmodel = #{cmodel}
+			</if>
+			<if test="order_Number != null and order_Number !=''">
+				AND oi.Order_Number LIKE CONCAT('%', #{order_Number},'%')
+			</if>
+			<if test="realName != null and realName !=''">
+				AND ui.realName LIKE CONCAT('%', #{realName},'%')
+			</if>
+			<if test="clicense != null and clicense !=''">
+				AND ci.clicense LIKE CONCAT('%',  #{clicense},'%')
+			</if>
+			<if test="zoneTime != null and zoneTime != ''">
+				AND oi.StartTime <![CDATA[<=]]> #{zoneTime}
+				AND oi.EndTime <![CDATA[>=]]>  #{zoneTime}
+			</if>
+			<if test="uname != null and uname!= ''">
+				AND ui.uname = #{uname}
+			</if>
+		</where>
+	</select>
+</mapper>

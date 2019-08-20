@@ -1,0 +1,98 @@
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.PayInfoMapper">
+	<insert id="savePayInfo">
+		INSERT INTO payinfo (pid,uid,rechargeORconsume,fictitiousFund,actualFund,payment,transactionStatus,payId,
+		payStatus,discountTypes,createTime)
+		VALUES(#{pid},#{uid},#{rechargeORconsume},#{fictitiousFund},#{actualFund},#{payment},#{transactionStatus},#{payId},
+		#{payStatus},#{discountTypes},NOW());
+	</insert>
+	
+	<select id="findAllPayInfoByUid" resultType="com.bool.carshare.entity.PayInfo">
+		SELECT * FROM payinfo pi 
+		<where>
+			<if test="condition.uid != null">
+				pi.uid = #{condition.uid} 
+			</if>
+			<if test="condition.rechargeORconsume != null ">
+				AND pi.rechargeORconsume = #{condition.rechargeORconsume}
+			</if>
+		</where>
+		ORDER BY pi.pid DESC 
+		limit #{start},#{row} 
+	</select>
+	
+	<select id="findChange" resultType="com.bool.carshare.entity.PayInfo">
+		SELECT * FROM payinfo pi 
+		<where>
+			pi.rechargeORconsume = 0 OR pi.rechargeORconsume = 2 
+			<if test="condition.uid != null">
+				AND pi.uid = #{condition.uid} 
+			</if>
+		</where>
+		ORDER BY pi.pid DESC 
+		limit #{start},#{row} 
+	</select>
+	
+	<select id="findChangeCount" resultType="java.lang.Integer">
+		SELECT Count(*) FROM payinfo pi 
+		<where>
+			pi.rechargeORconsume = 0 OR pi.rechargeORconsume = 2 
+			<if test="uid != null">
+				AND pi.uid = #{uid} 
+			</if>
+		</where>
+		ORDER BY pi.pid DESC 
+		limit #{start},#{row} 
+	</select>
+	
+	<select id="findCountByUid" resultType="java.lang.Integer">
+		SELECT count(*) FROM payinfo pi 
+		<where>
+			
+			<if test="uid != null">
+				pi.uid = #{uid}
+			</if>
+			<if test="rechargeORconsume != null ">
+				AND pi.rechargeORconsume = #{rechargeORconsume}
+			</if>
+		</where>
+	</select>
+	
+	<select id="findCountByUidRC" resultType="com.bool.carshare.entity.PayInfo">
+		SELECT * FROM payinfo pi 
+		<where>
+		pi.transactionStatus = '0'
+			<if test="uid != null">
+				AND pi.uid = #{uid}
+			</if>
+			<if test="rechargeORconsume != null ">
+				AND pi.rechargeORconsume = #{rechargeORconsume}
+			</if>
+		</where>
+	</select>
+	<update id="updateSuccessState">
+		UPDATE payinfo pi
+		<set>
+			<if test="transactionStatus != null">
+				pi.transactionStatus = #{transactionStatus},
+			</if>
+			<if test="payId != null">
+				pi.payId = #{payId},
+			</if>
+			<if test="payment != null">
+				pi.payment = #{payment},
+			</if>
+			<if test="modifyTime != null">
+				pi.modifyTime = #{modifyTime}
+			</if>
+		</set>
+		WHERE pi.pid = #{pid}
+	</update>
+	
+	<select id="findOnePayById" resultType="com.bool.carshare.entity.PayInfo">
+		SELECT * FROM payinfo WHERE pid = #{pid}
+	</select>
+</mapper>

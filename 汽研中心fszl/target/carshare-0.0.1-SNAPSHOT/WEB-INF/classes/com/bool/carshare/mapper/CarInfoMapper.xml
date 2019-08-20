@@ -1,0 +1,241 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.CarInfoMapper">
+	<resultMap type="com.bool.carshare.entity.CarInfo" id="carInfoResultMap"
+		autoMapping="true">
+		<association property="dotInfo" javaType="com.bool.carshare.entity.DotInfo"
+			column="dotInfo" autoMapping="true">
+		</association>
+	</resultMap>
+	<select id="getCarInfos" resultMap="carInfoResultMap">
+		SELECT * FROM carinfo car
+		LEFT JOIN dotinfo dot ON car.dotInfo = dot.dot_id
+		<where>
+			car.runstate = '2'
+			AND car.cstate = '2'
+			<if test="cmodel != null">
+				AND car.cmodel = #{cmodel}
+			</if>
+			<if test="clicense != null">
+				AND car.clicense = #{clicense}
+			</if>
+			<if test="cterminal != null">
+				AND car.cterminal = #{cterminal}
+			</if>
+			<if test="cvin != null">
+				AND car.cvin = #{cvin}
+			</if>
+			<if test="ctype > 0">
+				AND car.ctype = #{ctype}
+			</if>			
+			<if test="dotInfo != null and dotInfo.dot_id != null">
+				AND car.dotInfo = #{dotInfo.dot_id}
+			</if>
+		</where>
+	</select>
+	<insert id="saveCarInfo">
+		insert into carinfo(cterminal,dotName,cmodel,clicense,cvin,insuranceDate,
+		insuranceCompany,insurancePhone,lastMaintainDate,lastAnnualCheckDate,cstate,
+		ccreateDate,modifyTime,cphoto)
+		values(#{cterminal},#{dotName},#{cmodel},#{clicense},#{cvin},#{insuranceDate},
+		#{insuranceCompany},#{insurancePhone},#{lastMaintainDate},#{lastAnnualCheckDate}
+		,2,now(),now(),#{cphoto})
+	</insert>
+	
+	<select id="getCarInfoById" resultMap="carInfoResultMap">
+		SELECT * FROM carinfo car 
+		LEFT JOIN dotinfo dot ON car.dotInfo = dot.dot_id 
+		WHERE car.cid = #{cid}
+	</select>
+	
+	<update id="updateCarInfoById" >
+		update carinfo
+		
+		<set>
+			<if test="cstate != null">
+				cstate = #{cstate},
+			</if>
+			<if test="runState != null">
+				runState = #{runState},
+			</if>
+			<if test="cterminal != null">
+				cterminal = #{cterminal},
+			</if>
+			<if test="dotInfo != null and dotInfo.dot_id != null">
+				dotInfo = #{dotInfo.dot_id},
+			</if>
+			<if test="crunMileage != null">
+				crunMileage = #{crunMileage},
+			</if>
+			<if test="soc != null">
+				soc = #{soc},
+			</if>
+			<if test="dotName != null">
+				dotName = #{dotName},
+			</if>
+			<if test="cmodel != null">
+				cmodel = #{cmodel},
+			</if>
+			<if test="clicense != null">
+				clicense = #{clicense},
+			</if>
+			<if test="cvin != null">
+				cvin = #{cvin},
+			</if>
+			<if test="insuranceDate != null ">
+				insuranceDate = #{insuranceDate},
+			</if>
+			<if test="insuranceCompany != null">
+				insuranceCompany = #{insuranceCompany},
+			</if>
+			<if test="insurancePhone != null">
+				insurancePhone = #{insurancePhone},
+			</if>
+			<if test="lastMaintainDate != null">
+				lastMaintainDate = #{lastMaintainDate},
+			</if>
+			<if test="lastAnnualCheckDate != null">
+				lastAnnualCheckDate = #{lastAnnualCheckDate},
+			</if>
+			<if test="modifyTime != null">
+				modifyTime = #{modifyTime},
+			</if>
+			<if test="cphoto != null">
+				cphoto = #{cphoto}
+			</if>
+		</set>
+		
+		where cid = #{cid}
+	</update>
+	
+	<select id="findCarsByDotId" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM carinfo car WHERE car.dotInfo = #{dotId} AND car.cstate = 2 AND car.runState = '2';
+	</select>
+	<!-- 去重查询车辆型号 -->
+	<select id="findCarModel" resultType="java.lang.String">
+		SELECT distinct cmodel FROM carinfo ORDER BY cmodel desc;
+	</select>
+	
+	<select id="findCarInfoAll"  resultMap="carInfoResultMap">
+		SELECT * FROM carinfo 
+		<where>
+			<if test="condition.cmodel != null and condition.cmodel != '' ">
+				 cmodel = #{condition.cmodel}
+			</if>
+			<if test="condition.cstate != null and condition.cstate != '' ">
+				 AND cstate = #{condition.cstate}
+			</if>
+			<if test="condition.runState != null and condition.runState != '' ">
+				 AND runState = #{condition.runState}
+			</if>
+			<if test="condition.clicense != null and condition.clicense != '' ">
+				 AND clicense LIKE CONCAT('%', #{condition.clicense} ,'%')
+			</if>
+			<if test="condition.soc != null and condition.soc != '' ">
+				 AND soc <![CDATA[<=]]> #{condition.soc}
+			</if>
+		</where>
+		<if test="condition.sortName != null and condition.sortOrder != null">
+			 ORDER BY ${condition.sortName} ${condition.sortOrder}
+		</if>
+		limit #{start},#{row}
+	</select>
+	
+	<select id="findCarInfoAllNum" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM carinfo car
+		<where>
+			<if test="cmodel != null and cmodel != ''">
+				 car.cmodel = #{cmodel}
+			</if>
+			<if test="cstate != null and cstate != ''">
+				 AND car.cstate = #{cstate}
+			</if>
+			<if test="runState != null and runState != ''">
+				 AND car.runState = #{runState}
+			</if>
+			<if test="clicense != null and clicense != ''">
+				 AND car.clicense LIKE CONCAT('%', #{clicense} ,'%')
+			</if>
+			<if test="soc != null and soc != ''">
+				 AND car.soc <![CDATA[<=]]> #{soc}
+			</if>
+		</where>
+	</select>
+	<update id="upCarInfoByTerminal">
+		UPDATE carinfo 
+		<set>
+			<if test="longitude != null">
+				longitude = #{longitude},
+			</if>
+			<if test="latitude != null">
+				latitude = #{latitude},
+			</if>
+			<if test="socMileage != null">
+				socMileage = #{socMileage},
+			</if>
+			<if test="lockState != null">
+				lockState = #{lockState},
+			</if>
+			<if test="carDoorState != null">
+				carDoorState = #{carDoorState},
+			</if>
+			<if test="trunkState != null">
+				trunkState = #{trunkState},
+			</if>
+			<if test="lcarWinState != null">
+				lcarWinState = #{lcarWinState},
+			</if>
+			<if test="rcarWinState != null">
+				rcarWinState = #{rcarWinState},
+			</if>
+			<if test="startupState != null">
+				startupState = #{startupState},
+			</if>
+			<if test="modifyTime != null">
+				modifyTime = #{modifyTime},
+			</if>
+			<if test="speed != null">
+				speed = #{speed}
+			</if>
+		</set>
+		<where>
+			<if test="cterminal != null">
+				cterminal = #{cterminal}
+			</if>
+		</where>
+	</update>
+	
+	<delete id="deleteCarInfo">
+		delete from carinfo
+		where cid in
+		<foreach collection="cids" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="getCarInfoByVin" resultMap="carInfoResultMap">
+		SELECT * FROM carinfo car
+		LEFT JOIN dotinfo dot ON car.dotInfo = dot.dot_id 
+		WHERE car.cvin = #{cvin}
+	</select>
+	<update id="setCarRunState">
+		update carinfo
+		set runState = #{runState}
+		where clicense = #{plateNumber}
+	</update>
+	
+	<update id="uploadAttachment">
+		update carinfo
+		set attachment = #{storageLocation}
+		where cid = #{carID}
+	</update>
+	
+	<select id="getCarInfoList" resultType="com.bool.carshare.entity.CarInfo">
+		select * from CarInfo
+		where cid in
+		<foreach collection="carIDArray" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+</mapper>

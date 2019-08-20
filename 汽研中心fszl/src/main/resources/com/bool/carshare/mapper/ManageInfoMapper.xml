@@ -1,0 +1,136 @@
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.ManageInfoMapper">
+	<resultMap type="com.bool.carshare.entity.ManageInfo" id="manageInfoResultMap">
+	</resultMap>
+	
+	<insert id="saveAdminInfo" useGeneratedKeys="true" keyProperty="manageId" parameterType="com.bool.carshare.entity.ManageInfo">
+		INSERT INTO manageinfo(manageName,manageAllName,department,phone,mailbox,userStatus,userLevel,createTime,statusTime,manageLogin,password,roleName,photo,del)
+		VALUES(#{manageName},#{manageAllName},#{department},#{phone},#{mailbox},#{userStatus},#{userLevel},NOW(),NOW(),#{manageLogin},#{password},#{roleName},#{photo},'n');
+	</insert>
+	<!-- 查询所有管理员 -->
+	<select id="getAllAdminInfo" resultMap="manageInfoResultMap">
+		select * from manageinfo manageInfo
+		where manageInfo.del = 'n'
+		
+		<if test="condition.manageAllName!=null and condition.manageAllName!=''">
+			and manageInfo.manageAllName like concat('%', #{condition.manageAllName}, '%')
+		</if>
+		<if test="condition.department!=null and condition.department!=''">
+			and manageInfo.department like concat('%', #{condition.department}, '%')
+		</if>
+		
+		limit #{start}, #{row}
+	</select>
+	<!-- 登陆名是否注册过 -->
+	<select id="getEqualUser" resultType="Integer">
+		SELECT COUNT(*) FROM manageinfo 
+		WHERE manageLogin = #{manageLogin}
+	</select>
+	
+	<select id="login" resultMap="manageInfoResultMap">
+   		select * from manageinfo where del = 'n' and manageLogin= #{manageLogin} and password = #{password}
+   	</select>
+   	
+	<update id="updateAdminInfo">
+		UPDATE manageinfo
+		
+		<set>
+			<if test="manageAllName != null">
+				manageAllName = #{manageAllName}
+			</if>
+			<if test="phone != null">
+				,phone = #{phone}
+			</if>
+			<if test="mailbox != null">
+				,mailbox = #{mailbox}
+			</if>
+			<if test="department != null">
+				,department = #{department}
+			</if>
+			<if test="manageLogin != null">
+				,manageLogin = #{manageLogin}
+			</if>
+			<if test="userStatus != null">
+				,userStatus = #{userStatus}
+			</if>
+			<if test="userLevel != null">
+				,userLevel = #{userLevel}
+			</if>
+			<if test="roleName != null">
+				,roleName = #{roleName}
+			</if>
+			<if test="photo != null">
+				,photo = #{photo}
+			</if>
+		</set>
+		
+		WHERE manageId = #{manageId};
+	</update>
+	
+	<update id="updatePassword">
+		update manageinfo
+		set password = #{newPassword}
+		where manageId = #{manageID}
+	</update>
+	
+	<update id="deleteAdminInfo">
+		update manageinfo
+		
+		<set>
+			del = 'y'
+		</set>
+		
+		where manageId = #{manageId}
+	</update>
+	
+	<!-- <delete id="deleteAdminInfo">
+		DELETE FROM ManageInfo WHERE manageId = #{manageId};
+	</delete> -->
+	
+	<insert id="saveManageNode">
+		insert into managenode(user_id, node_id, operate_type) values
+		<foreach collection="nodeList" item="item" index="index" separator=",">
+			(#{manageId}, #{item.id}, #{item.operate_type})
+		</foreach>
+	</insert>
+	
+	<delete id="deleteManageNode">
+		delete from managenode where user_id = #{manageId};
+	</delete>
+	
+	<select id="getAllAdminInfoNum" resultType="java.lang.Integer">
+		select count(*) from manageinfo manageInfo
+		where manageInfo.del = 'n'
+		
+		<if test="manageAllName!=null and manageAllName!=''">
+			and manageInfo.manageAllName like concat('%', #{manageAllName}, '%')
+		</if>
+		<if test="department!=null and department!=''">
+			and manageInfo.department like concat('%', #{department}, '%')
+		</if>
+	</select>
+	
+	<select id="getManageInfo" resultType="com.bool.carshare.entity.ManageInfo">
+		select * from manageinfo where manageId = #{manageID}
+	</select>
+	
+	<select id="getNodeList" resultType="com.bool.carshare.entity.NodeInfo">
+		select n.*, m.operate_type
+		from managenode m
+		left join nodeinfo n
+		on m.node_id = n.id
+		where m.user_id = #{manageID}
+	</select>
+	
+	<select id="getRoleList" resultType="com.bool.carshare.entity.RoleInfo">
+		select r.*
+		from managerole m
+		left join roleinfo r
+		on m.role_id = r.id
+		where m.user_id = #{manageID}
+		order by r.power asc
+	</select>
+</mapper>

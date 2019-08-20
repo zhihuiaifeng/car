@@ -1,0 +1,40 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bool.carshare.mapper.FinanceInfoMapper">
+	
+	<insert id="saveFinanceInfo">
+		INSERT INTO financeinfo(pid,payId,payStatus,payment,status,applyTime,other,newPayId)
+		VALUES(#{pid},#{payId},#{payStatus},#{payment},#{status},NOW(),#{other},#{newPayId})
+	</insert>
+	
+	<select id="findFinanceInfo" resultType="com.bool.carshare.entity.FinanceInfo">
+		SELECT * FROM financeinfo 
+		<where>
+			<if test="condition.payStatus != null and condition.payStatus != ''">
+				payStatus = #{condition.payStatus}
+			</if>
+			<if test="condition.status != null and condition.status != ''">
+				AND status = #{condition.status}
+			</if>
+		</where>
+		limit #{start},#{row}
+	</select>
+	
+	<select id="findFinanceInfoCount" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM financeinfo 
+		<where>
+			<if test="payStatus != null and payStatus != ''">
+				payStatus = #{payStatus}
+			</if>
+			<if test="status != null and status != ''">
+				AND status = #{status}
+			</if>
+		</where>
+	</select>
+	
+	<update id="upFinanceInfoStatus">
+		UPDATE financeinfo SET status = #{status}, finishTime = NOW() WHERE newPayId = #{newPayId}
+	</update>
+	
+</mapper>
